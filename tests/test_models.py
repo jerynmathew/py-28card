@@ -1,5 +1,6 @@
 from unittest import TestCase
-from src.py_28card.models import FullDeck, FourPlayerDeck, Card, Suit, Value
+
+from src.py_28card.models import Card, FourPlayerDeck, FullDeck, Suit, Value
 
 
 class DeckTest(TestCase):
@@ -11,15 +12,15 @@ class DeckTest(TestCase):
 
         deck.generate_deck(is_shuffle=False)
 
-        self.assertEqual(deck.size, 56)
-        self.assertEqual(deck.top_card, first_card)
-        self.assertEqual(deck.bottom_card, last_card)
+        assert deck.size == 56
+        assert deck.top_card == first_card
+        assert deck.bottom_card == last_card
 
         deck.generate_deck(is_shuffle=True)
 
-        self.assertEqual(deck.size, 56)
-        self.assertNotEqual(deck.top_card, first_card)
-        self.assertNotEqual(deck.bottom_card, last_card)
+        assert deck.size == 56
+        assert deck.top_card != first_card
+        assert deck.bottom_card != last_card
 
     def test_4p_deck(self):
         deck = FourPlayerDeck()
@@ -28,13 +29,13 @@ class DeckTest(TestCase):
 
         deck.generate_4_player_deck(is_shuffle=False)
 
-        self.assertEqual(deck.size, 32)
-        self.assertEqual(deck.top_card, first_card)
-        self.assertEqual(deck.bottom_card, last_card)
+        assert deck.size == 32
+        assert deck.top_card == first_card
+        assert deck.bottom_card == last_card
 
         deck.generate_4_player_deck(is_shuffle=True)
 
-        self.assertEqual(deck.size, 32)
-        self.assertNotEqual(deck.top_card, first_card)
-        self.assertNotEqual(deck.bottom_card, last_card)
+        assert deck.size == 32
+        assert deck.top_card != first_card
+        assert deck.bottom_card != last_card
 

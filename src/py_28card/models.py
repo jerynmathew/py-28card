@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import List, Iterable
 from random import shuffle
+from typing import Iterable, List
+
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
 
 
 class IsEmptyError(Exception):
@@ -37,8 +42,14 @@ class Value(StrEnum):
 
 
 VALID_4_PLAYER_VALUES = [
-    Value.JACK, Value.QUEEN, Value.KING, Value.ACE,
-    Value.TEN, Value.NINE, Value.EIGHT, Value.SEVEN
+    Value.JACK,
+    Value.QUEEN,
+    Value.KING,
+    Value.ACE,
+    Value.TEN,
+    Value.NINE,
+    Value.EIGHT,
+    Value.SEVEN,
 ]
 
 
@@ -49,6 +60,22 @@ class Card:
 
     def __repr__(self) -> str:
         return f"{self.value.value}{self.suit.value}"
+
+    @property
+    def score(self):
+        if self.value:
+            match self.value:
+                case Value.JACK:
+                    return 3
+                case Value.NINE:
+                    return 2
+                case Value.ACE:
+                    return 1
+                case Value.TEN:
+                    return 1
+                case _:
+                    return 0
+        return None
 
 
 @dataclass
@@ -66,16 +93,19 @@ class Deck:
     def size(self) -> int:
         if self.cards:
             return len(self.cards)
+        return None
 
     @property
     def top_card(self) -> Card:
         if self.cards:
             return self.cards[0]
+        return None
 
     @property
     def bottom_card(self) -> Card:
         if self.cards:
             return self.cards[-1]
+        return None
 
     def sort_cards(self):
         if self.cards:
@@ -85,9 +115,18 @@ class Deck:
         if isinstance(self.cards, Iterable):
             self.cards.clear()
 
+        if not self.cards:
+            self.cards = []
+
     def shuffle_deck(self):
         if self.cards:
-            shuffle(self.cards)
+            new_deck = self.cards.copy()
+
+            while True:
+                shuffle(new_deck)
+                if new_deck != self.cards:
+                    self.cards = new_deck
+                    return
 
     def draw_card(self) -> Card:
         if isinstance(self.cards, Iterable):
@@ -101,6 +140,14 @@ class Deck:
 
     def generate_deck(self):
         raise NotImplementedError
+
+    @property
+    def total_score(self) -> int:
+        total = 0
+        for card in self.cards:
+            total += card.score
+
+        return total
 
 
 class FullDeck(Deck):
@@ -132,18 +179,36 @@ class FourPlayerDeck(FullDeck):
 @dataclass
 class Hand(Deck):
     def draw_card_from_deck(self, deck: Deck, count: int = 1):
-        self.cards.append(deck.draw_card())
+        self.clear_deck()
+
+        for _ in range(count):
+            self.cards.append(deck.draw_card())
 
     def show_cards(self):
-        pass
+        if not self.cards:
+            print("No cards drawn for this hand!")
+            return
+
+        table = Table(title="Your Hand")
+        table.add_column("Number", justify="center")
+        table.add_column("Card", justify="center")
+        table.add_column("Score", justify="right", style="green")
+
+        for index, card in enumerate(self.cards):
+            table.add_row(f"{index + 1}", f"{card}", f"{card.score}")
+
+        table.add_row("", "[bold]Total Score", f"[bold]{self.total_score}")
+        console.print(table)
 
     def play_card(self, card_number: int):
-        pass
+        if self.card and card_number <= len(self.cards):
+            return self.cards.pop(card_number - 1)
+
+        raise Exception(msg="Invalid Card")
 
 
 class Player:
     hand: Hand
-
 
 
 class Rules:
